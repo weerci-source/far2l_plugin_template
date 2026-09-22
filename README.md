@@ -15,7 +15,7 @@
 - **Пример плагина `nf`** — минимальный, с меню и диалогом; служит отправной точкой.
 - **Шаблоны панельного плагина** (закомментированы в `src/main.cpp`) —
   `OpenPlugin`, `GetFindData`, `FreeFindData`, `SetDirectory` и т.д.
-- Подробная документация по API: [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md).
+- Подробная документация по API: [`doc/DEVELOPMENT.md`](doc/DEVELOPMENT.md).
 
 ## Требования
 
