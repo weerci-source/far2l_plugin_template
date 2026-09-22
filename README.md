@@ -148,7 +148,7 @@ sudo cp build-release/src/nf.far-plug-wide /usr/lib/far2l/Plugins/nf/plug/
 
 ## Документация
 
-- [`doc/DEVELOPMENT.md`](docs/DEVELOPMENT.md) — жизненный цикл плагина,
+- [`doc/DEVELOPMENT.md`](doc/DEVELOPMENT.md) — жизненный цикл плагина,
   полный список экспортируемых функций, шаблоны кода, взаимодействие с far2l.
 
 ## Лицензия
