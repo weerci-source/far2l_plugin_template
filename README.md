@@ -92,16 +92,119 @@ cd build && ctest --output-on-failure
 
 ## Установка плагина в far2l
 
-far2l ищет плагины в подкаталогах вида `<Plugins>/<name>/plug/<name>.far-plug-wide`.
+far2l ищет плагины в подкаталогах вида:
 
-Например, для системной установки:
+```
+<Plugins>/<name>/plug/<name>.far-plug-wide
+```
+
+Каталог `<Plugins>` зависит от того, как именно установлен far2l: из системного
+пакета, из исходников с `prefix=/usr/local`, через Snap/Flatpak, из локальной
+сборки и т.п. Поэтому путь `/usr/lib/far2l/Plugins` в задачах VS Code — это лишь
+один из возможных вариантов, а не жёсткая константа.
+
+### Как найти реальный каталог плагинов
+
+Сначала посмотрите типовые пути для локальной установки:
+
+```bash
+find /usr/local/lib/far2l/Plugins /usr/local/share/far2l/Plugins -maxdepth 3 2>/dev/null | sort
+```
+
+Затем найдите уже установленные плагины far2l по всей системе:
+
+```bash
+find / -name '*.far-plug-wide' 2>/dev/null
+```
+
+Полезно также проверить системный путь:
+
+```bash
+find /usr/lib/far2l/Plugins /usr/lib/*/far2l/Plugins -maxdepth 3 2>/dev/null | sort
+```
+
+По выводу определите базовый каталог `<Plugins>`:
+
+| Пример вывода | Базовый каталог `<Plugins>` |
+|---|---|
+| `/usr/lib/far2l/Plugins/...` | `/usr/lib/far2l/Plugins` |
+| `/usr/lib/x86_64-linux-gnu/far2l/Plugins/...` | `/usr/lib/x86_64-linux-gnu/far2l/Plugins` |
+| `/usr/local/lib/far2l/Plugins/...` | `/usr/local/lib/far2l/Plugins` |
+| `/usr/local/share/far2l/Plugins/...` | `/usr/local/share/far2l/Plugins` |
+| `~/.local/share/far2l/Plugins/...` | `~/.local/share/far2l/Plugins` |
+
+Если `find / -name '*.far-plug-wide'` ничего не вывел, это значит, что сторонние
+плагины ещё не установлены. В таком случае ориентируйтесь на путь, который
+использует ваш дистрибутив или сборочный prefix far2l. Например, для far2l,
+собранного из исходников с `-DCMAKE_INSTALL_PREFIX=/usr/local`, обычно
+подходит `/usr/local/lib/far2l/Plugins`.
+
+### Пример установки
+
+Допустим, реальный базовый каталог — `/usr/local/lib/far2l/Plugins`.
+Тогда для системной установки:
+
+```bash
+sudo mkdir -p /usr/local/lib/far2l/Plugins/nf/plug
+sudo cp build-release/src/nf.far-plug-wide /usr/local/lib/far2l/Plugins/nf/plug/nf.far-plug-wide
+sudo chmod 644 /usr/local/lib/far2l/Plugins/nf/plug/nf.far-plug-wide
+```
+
+Если базовый каталог `/usr/local/share/far2l/Plugins`:
+
+```bash
+sudo mkdir -p /usr/local/share/far2l/Plugins/nf/plug
+sudo cp build-release/src/nf.far-plug-wide /usr/local/share/far2l/Plugins/nf/plug/nf.far-plug-wide
+sudo chmod 644 /usr/local/share/far2l/Plugins/nf/plug/nf.far-plug-wide
+```
+
+Если плагины ставятся в домашний каталог, например
+`~/.local/share/far2l/Plugins`, то `sudo` обычно не нужен:
+
+```bash
+mkdir -p ~/.local/share/far2l/Plugins/nf/plug
+cp build-release/src/nf.far-plug-wide ~/.local/share/far2l/Plugins/nf/plug/nf.far-plug-wide
+chmod 644 ~/.local/share/far2l/Plugins/nf/plug/nf.far-plug-wide
+```
+
+### Что поправить в задачах VS Code
+
+В `.vscode/tasks.json` задачи `nf: install (Release)` и
+`nf: build (Release) + install` по умолчанию содержат жёстко прописанный путь:
+
+```bash
+/usr/lib/far2l/Plugins/nf/plug
+```
+
+Если команды `find` показали другой базовый каталог, замените в **обеих** задачах
+все вхождения `/usr/lib/far2l/Plugins` на найденный `<Plugins>`.
+
+Например, было:
 
 ```bash
 sudo mkdir -p /usr/lib/far2l/Plugins/nf/plug
-sudo cp build-release/src/nf.far-plug-wide /usr/lib/far2l/Plugins/nf/plug/
+sudo cp -v build-release/src/nf.far-plug-wide /usr/lib/far2l/Plugins/nf/plug/nf.far-plug-wide
+sudo chmod 644 /usr/lib/far2l/Plugins/nf/plug/nf.far-plug-wide
 ```
 
-Или через задачу VS Code `nf: install (Release)`.
+Стало для `/usr/local/lib/far2l/Plugins`:
+
+```bash
+sudo mkdir -p /usr/local/lib/far2l/Plugins/nf/plug
+sudo cp -v build-release/src/nf.far-plug-wide /usr/local/lib/far2l/Plugins/nf/plug/nf.far-plug-wide
+sudo chmod 644 /usr/local/lib/far2l/Plugins/nf/plug/nf.far-plug-wide
+```
+
+Или для `/usr/local/share/far2l/Plugins`:
+
+```bash
+sudo mkdir -p /usr/local/share/far2l/Plugins/nf/plug
+sudo cp -v build-release/src/nf.far-plug-wide /usr/local/share/far2l/Plugins/nf/plug/nf.far-plug-wide
+sudo chmod 644 /usr/local/share/far2l/Plugins/nf/plug/nf.far-plug-wide
+```
+
+После правки сохраните `tasks.json`. При необходимости перезагрузите окно VS Code:
+**Ctrl+Shift+P → Developer: Reload Window**.
 
 Перезапустите far2l, нажмите **F11** — плагин `nf` должен появиться в списке.
 
@@ -121,8 +224,8 @@ sudo cp build-release/src/nf.far-plug-wide /usr/lib/far2l/Plugins/nf/plug/
 | `nf: build (Debug)` | Конфигурирует и собирает Debug. |
 | `nf: build (Debug) + test` | То же + CTest. |
 | `nf: build (Release)` | Конфигурирует и собирает Release. |
-| `nf: install (Release)` | Копирует Release-плагин в `/usr/lib/far2l/Plugins/nf/plug/`. |
-| `nf: build (Release) + install` | Всё сразу: собрать Release и поставить. |
+| `nf: install (Release)` | Копирует Release-плагин в каталог плагинов far2l. Путь нужно проверить и при необходимости исправить под свою установку far2l. |
+| `nf: build (Release) + install` | Всё сразу: собрать Release и поставить. Путь также нужно проверить и при необходимости исправить. |
 | `nf: run far2l` | Собирает Debug и запускает far2l. |
 
 Отладка в `launch.json`: `nf: Debug in far2l (lldb)` и `nf: Debug tests (lldb)`.
